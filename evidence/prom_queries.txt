@@ -1,0 +1,16 @@
+== BASELINE (v2, mặc định) @2026-11-26T08:30:30Z
+  p95 /ask: [({}, 0.2899)]
+  avg /ask: [({}, 0.2185)]
+  req/s by instance: [({'instance': '172.18.0.4:8000'}, 8.923), ({'instance': '172.18.0.2:8000'}, 8.9535)]
+  tokens/s by type: [({'type': 'input'}, 1384.4725), ({'type': 'output'}, 731.1921)]
+  retrieval by result: [({'result': 'hit'}, 17.8938)]
+  cost/h: [({}, 0.6562)]
+  agent_info: [({'__name__': 'agent_info', 'instance': '172.18.0.4:8000', 'job': 'agent', 'model': 'mock-llm-small', 'version': 'v2'}, 1.0), ({'__name__': 'agent_info', 'instance': '172.18.0.2:8000', 'job': 'agent', 'model': 'mock-llm-small', 'version': 'v2'}, 1.0)]
+== E: AGENT_VERSION=v1 @2026-11-26T08:42:00Z
+  p95 /ask: [({}, 0.1976)]
+  avg /ask: [({}, 0.1968)]
+  req/s by instance: [({'instance': '172.18.0.4:8000'}, 8.2864), ({'instance': '172.18.0.2:8000'}, 8.5906)]
+  tokens/s by type: [({'type': 'input'}, 608.3937), ({'type': 'output'}, 330.0045)]
+  retrieval by result: []
+  cost/h: [({}, 1.1948)]
+  agent_info: [({'__name__': 'agent_info', 'instance': '172.18.0.4:8000', 'job': 'agent', 'model': 'mock-llm-small', 'version': 'v1'}, 1.0), ({'__name__': 'agent_info', 'instance': '172.18.0.2:8000', 'job': 'agent', 'model': 'mock-llm-small', 'version': 'v1'}, 1.0)]

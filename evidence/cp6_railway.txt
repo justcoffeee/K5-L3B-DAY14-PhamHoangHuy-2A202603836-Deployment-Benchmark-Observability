@@ -1,0 +1,13 @@
+$ curl -sS -o /dev/null -w "%{http_code}\n" "$BASE/health"
+200
+$ curl -sS -o /dev/null -w "%{http_code}\n" "$BASE/ready"
+200
+$ curl ... -X POST "$BASE/ask" (không key)
+401
+$ curl ... -X POST "$BASE/ask" -H "X-API-Key: $AGENT_API_KEY"
+200
+--- body /ready và /ask (có key) ---
+{"status":"ready","redis":"ok"}
+{"question":"What is deployment?","answer":"Deployment là quá trình đưa code từ máy bạn lên server để người khác dùng được."}
+--- rate limit: 12 request liên tiếp ---
+200 200 200 200 200 200 200 200 429 429 429 429 

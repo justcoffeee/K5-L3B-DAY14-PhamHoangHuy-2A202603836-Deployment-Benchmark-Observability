@@ -1,0 +1,47 @@
+$ docker images my-agent
+IMAGE               ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-agent:advanced   bd7c8ed6e64b        240MB         57.4MB        
+my-agent:develop    241f6f22943d       1.67GB          426MB        
+$ docker image inspect --format "{{.Size}}" (bytes)
+my-agent:develop 426319956
+my-agent:advanced 57408401
+$ curl -i -X POST "http://localhost:8000/ask?question=What%20is%20Docker%3F"   (container my-agent:develop)
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 07:21:54 GMT
+server: uvicorn
+content-length: 103
+content-type: application/json
+
+{"answer":"Container là cách đóng gói app để chạy ở mọi nơi. Build once, run anywhere!"}
+$ curl http://localhost:8000/health
+{"status":"ok","uptime_seconds":4.0,"container":true}
+$ docker compose -p k5-day14-docker ps
+SERVICE   IMAGE                   STATUS                    PORTS
+agent     k5-day14-docker-agent   Up 15 seconds (healthy)   8000/tcp
+nginx     nginx:alpine            Up 15 seconds             0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp
+qdrant    qdrant/qdrant:v1.9.0    Up 29 seconds (healthy)   6333-6334/tcp
+redis     redis:7-alpine          Up 29 seconds (healthy)   6379/tcp
+$ curl -i http://localhost/health
+HTTP/1.1 200 OK
+Server: nginx
+Date: Thu, 26 Nov 2026 07:25:37 GMT
+Content-Type: application/json
+Content-Length: 96
+Connection: keep-alive
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+
+{"status":"ok","uptime_seconds":14.9,"version":"2.0.0","timestamp":"2026-11-26T07:25:37.052275"}
+$ curl -i -X POST http://localhost/ask -H "Content-Type: application/json" -d {"question":"Explain microservices"}
+HTTP/1.1 200 OK
+Server: nginx
+Date: Thu, 26 Nov 2026 07:25:37 GMT
+Content-Type: application/json
+Content-Length: 126
+Connection: keep-alive
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+
+{"answer":"Đây là câu trả lời từ AI agent (mock). Trong production, đây sẽ là response từ OpenAI/Anthropic."}

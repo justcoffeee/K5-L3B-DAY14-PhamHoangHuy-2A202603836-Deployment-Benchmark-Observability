@@ -1,0 +1,108 @@
+### 5.1 health / ready
+$ curl http://localhost:8000/health
+{"status":"ok","uptime_seconds":3.8,"version":"1.0.0","environment":"development","timestamp":"2026-11-26T07:26:40.984443+00:00","checks":{"memory":{"status":"ok","used_percent":11.1}}}
+$ curl http://localhost:8000/ready
+{"ready":true,"in_flight_requests":1}
+### 5.2 graceful shutdown: gửi request rồi kill -TERM ngay
+in-flight request result: {"answer":"Agent đang hoạt động tốt! (mock response) Hỏi thêm câu hỏi đi nhé."} [HTTP 200]
+process exited, code=0
+--- server log ---
+2026-11-26 14:26:37,153 INFO Starting agent on port 8000
+INFO:     Started server process [707]
+INFO:     Waiting for application startup.
+2026-11-26 14:26:37,168 INFO Agent starting up...
+2026-11-26 14:26:37,168 INFO Loading model and checking dependencies...
+2026-11-26 14:26:37,368 INFO ✅ Agent is ready!
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:37000 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37014 - "GET /ready HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     127.0.0.1:37026 - "POST /ask?question=Long%20task HTTP/1.1" 200 OK
+INFO:     Waiting for application shutdown.
+2026-11-26 14:26:47,146 INFO 🔄 Graceful shutdown initiated...
+2026-11-26 14:26:47,146 INFO ✅ Shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [707]
+2026-11-26 14:26:47,146 INFO Received signal 15 — uvicorn will handle graceful shutdown
+### 5.4 docker compose -p k5-day14-scaling ps
+NAME                       STATUS                    PORTS
+k5-day14-scaling-agent-1   Up 16 seconds (healthy)   8000/tcp
+k5-day14-scaling-agent-2   Up 16 seconds (healthy)   8000/tcp
+k5-day14-scaling-agent-3   Up 16 seconds (healthy)   8000/tcp
+k5-day14-scaling-nginx-1   Up 16 seconds             0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+k5-day14-scaling-redis-1   Up 30 seconds (healthy)   6379/tcp
+### 5.4 10 requests qua nginx (served_by)
+served_by: instance-3331bb
+served_by: instance-0db040
+served_by: instance-fafeab
+served_by: instance-3331bb
+served_by: instance-0db040
+served_by: instance-fafeab
+served_by: instance-3331bb
+served_by: instance-0db040
+served_by: instance-fafeab
+served_by: instance-3331bb
+### 5.5 python test_stateless.py
+============================================================
+Stateless Scaling Demo
+============================================================
+
+Session ID: e5275086-15a3-4407-8fed-9deec9a247ca
+
+Request 1: [instance-0db040]
+  Q: What is Docker?
+  A: Container là cách đóng gói app để chạy ở mọi nơi. Build once, run anywhere!...
+
+Request 2: [instance-fafeab]
+  Q: Why do we need containers?
+  A: Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã được nhận....
+
+Request 3: [instance-3331bb]
+  Q: What is Kubernetes?
+  A: Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã được nhận....
+
+Request 4: [instance-0db040]
+  Q: How does load balancing work?
+  A: Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã được nhận....
+
+Request 5: [instance-fafeab]
+  Q: What is Redis used for?
+  A: Đây là câu trả lời từ AI agent (mock). Trong production, đây sẽ là response từ O...
+
+------------------------------------------------------------
+Total requests: 5
+Instances used: {'instance-3331bb', 'instance-0db040', 'instance-fafeab'}
+✅ All requests served despite different instances!
+
+--- Conversation History ---
+Total messages: 10
+  [user]: What is Docker?...
+  [assistant]: Container là cách đóng gói app để chạy ở mọi nơi. Build once...
+  [user]: Why do we need containers?...
+  [assistant]: Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã đư...
+  [user]: What is Kubernetes?...
+  [assistant]: Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã đư...
+  [user]: How does load balancing work?...
+  [assistant]: Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã đư...
+  [user]: What is Redis used for?...
+  [assistant]: Đây là câu trả lời từ AI agent (mock). Trong production, đây...
+
+✅ Session history preserved across all instances via Redis!
+### docker compose logs agent (tail, POST lines)
+agent-1  | INFO:     172.18.0.6:56146 - "POST /chat HTTP/1.1" 200 OK
+agent-3  | INFO:     172.18.0.6:38208 - "POST /chat HTTP/1.1" 200 OK
+agent-3  | INFO:     172.18.0.6:38208 - "POST /chat HTTP/1.1" 200 OK
+agent-3  | INFO:     172.18.0.6:38208 - "POST /chat HTTP/1.1" 200 OK
+agent-1  | INFO:     172.18.0.6:56146 - "POST /chat HTTP/1.1" 200 OK
+agent-1  | INFO:     172.18.0.6:56146 - "POST /chat HTTP/1.1" 200 OK
+agent-1  | INFO:     172.18.0.6:56146 - "POST /chat HTTP/1.1" 200 OK
+agent-1  | INFO:     172.18.0.6:56146 - "POST /chat HTTP/1.1" 200 OK
+agent-3  | INFO:     172.18.0.6:38208 - "POST /chat HTTP/1.1" 200 OK
+agent-3  | INFO:     172.18.0.6:38208 - "POST /chat HTTP/1.1" 200 OK
+agent-2  | INFO:     172.18.0.6:44920 - "POST /chat HTTP/1.1" 200 OK
+agent-2  | INFO:     172.18.0.6:44920 - "POST /chat HTTP/1.1" 200 OK
+agent-2  | INFO:     172.18.0.6:44920 - "POST /chat HTTP/1.1" 200 OK
+agent-2  | INFO:     172.18.0.6:44920 - "POST /chat HTTP/1.1" 200 OK
+agent-2  | INFO:     172.18.0.6:44920 - "POST /chat HTTP/1.1" 200 OK
+agent-2  | INFO:     172.18.0.6:44920 - "GET /chat/e5275086-15a3-4407-8fed-9deec9a247ca/history HTTP/1.1" 200 OK

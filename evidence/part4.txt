@@ -1,0 +1,106 @@
+### 4.1 develop — không có key
+$ curl -i -X POST http://localhost:8000/ask -H "Content-Type: application/json" -d {"question":"Hello"}
+HTTP/1.1 401 Unauthorized
+date: Thu, 26 Nov 2026 07:26:15 GMT
+server: uvicorn
+content-length: 67
+content-type: application/json
+
+{"detail":"Missing API key. Include header: X-API-Key: <your-key>"}
+### 4.1 develop — sai key
+$ curl -i -X POST http://localhost:8000/ask -H "X-API-Key: wrong-key" ...
+HTTP/1.1 403 Forbidden
+date: Thu, 26 Nov 2026 07:26:15 GMT
+server: uvicorn
+content-length: 29
+content-type: application/json
+
+{"detail":"Invalid API key."}
+### 4.1 develop — đúng key
+$ curl -i -X POST http://localhost:8000/ask -H "X-API-Key: secret-key-123" ...
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 07:26:15 GMT
+server: uvicorn
+content-length: 145
+content-type: application/json
+
+{"question":"Hello","answer":"Đây là câu trả lời từ AI agent (mock). Trong production, đây sẽ là response từ OpenAI/Anthropic."}
+### 4.2 production — lấy token
+$ curl -i -X POST http://localhost:8000/auth/token -H "Content-Type: application/json" -d {"username":"student","password":"demo123"}
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 07:26:25 GMT
+server: uvicorn
+content-length: 307
+content-type: application/json
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+
+{"access_token":"eyJ***REDACTED***","token_type":"bearer","expires_in_minutes":60,"hint":"Include in header: Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."}
+
+### 4.2 production — không có token
+HTTP/1.1 401 Unauthorized
+date: Thu, 26 Nov 2026 07:26:25 GMT
+server: uvicorn
+www-authenticate: Bearer
+content-length: 76
+content-type: application/json
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+
+{"detail":"Authentication required. Include: Authorization: Bearer <token>"}
+### 4.2 production — có token
+$ curl -i -X POST http://localhost:8000/ask -H "Authorization: Bearer $TOKEN" -d {"question":"Explain JWT"}
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 07:26:25 GMT
+server: uvicorn
+content-length: 215
+content-type: application/json
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+
+{"question":"Explain JWT","answer":"Đây là câu trả lời từ AI agent (mock). Trong production, đây sẽ là response từ OpenAI/Anthropic.","usage":{"requests_remaining":9,"budget_remaining_usd":2.1e-05}}
+### 4.3 rate limit — 20 request liên tiếp (mã HTTP mỗi request)
+request 1 -> 200
+request 2 -> 200
+request 3 -> 200
+request 4 -> 200
+request 5 -> 200
+request 6 -> 200
+request 7 -> 200
+request 8 -> 200
+request 9 -> 200
+request 10 -> 429
+request 11 -> 429
+request 12 -> 429
+request 13 -> 429
+request 14 -> 429
+request 15 -> 429
+request 16 -> 429
+request 17 -> 429
+request 18 -> 429
+request 19 -> 429
+request 20 -> 429
+### 4.3 response đầy đủ của 1 request bị chặn
+HTTP/1.1 429 Too Many Requests
+date: Thu, 26 Nov 2026 07:26:26 GMT
+server: uvicorn
+x-ratelimit-limit: 10
+x-ratelimit-remaining: 0
+x-ratelimit-reset: 1795678047
+retry-after: 59
+content-length: 98
+content-type: application/json
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+
+{"detail":{"error":"Rate limit exceeded","limit":10,"window_seconds":60,"retry_after_seconds":59}}
+### /me/usage
+{"user_id":"student","date":"2026-11-26","requests":10,"input_tokens":40,"output_tokens":312,"cost_usd":0.000193,"budget_usd":1.0,"budget_remaining_usd":0.999807,"budget_used_pct":0.0}

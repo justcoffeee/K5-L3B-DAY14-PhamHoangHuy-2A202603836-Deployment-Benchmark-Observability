@@ -1,0 +1,55 @@
+$ curl -i -X POST "http://localhost:8000/ask?question=Hello"
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 07:14:40 GMT
+server: uvicorn
+content-length: 95
+content-type: application/json
+
+{"answer":"Agent đang hoạt động tốt! (mock response) Hỏi thêm câu hỏi đi nhé."}
+$ curl -i http://localhost:8000/health
+HTTP/1.1 404 Not Found
+date: Thu, 26 Nov 2026 07:14:40 GMT
+server: uvicorn
+content-length: 22
+content-type: application/json
+
+{"detail":"Not Found"}
+--- server stdout (develop) ---
+INFO:     Will watch for changes in these directories: ['/mnt/c/Code/VINAI/K5-L3B-DAY14-PhamHoangHuy-2A202603836-Deployment-Benchmark-Observability/01-localhost-vs-production/develop']
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [638] using WatchFiles
+Starting agent on localhost:8000...
+INFO:     Started server process [641]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[DEBUG] Got question: Hello
+[DEBUG] Using key: sk-hardcoded-fake-key-never-do-this
+[DEBUG] Response: Agent đang hoạt động tốt! (mock response) Hỏi thêm câu hỏi đi nhé.
+INFO:     127.0.0.1:39584 - "POST /ask?question=Hello HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39594 - "GET /health HTTP/1.1" 404 Not Found
+=== PRODUCTION ===
+$ curl -i -X POST http://localhost:8000/ask -H "Content-Type: application/json" -d {"question":"Hello"}
+HTTP/1.1 200 OK
+date: Thu, 26 Nov 2026 07:14:46 GMT
+server: uvicorn
+content-length: 136
+content-type: application/json
+
+{"question":"Hello","answer":"Agent đang hoạt động tốt! (mock response) Hỏi thêm câu hỏi đi nhé.","model":"gpt-4o-mini"}
+$ curl http://localhost:8000/health
+{"status":"ok","uptime_seconds":3.9,"version":"1.0.0","environment":"development","timestamp":"2026-11-26T07:14:46.958635+00:00"}
+$ curl http://localhost:8000/ready
+{"ready":true}
+--- server log (production, after SIGTERM) ---
+WARNING:root:OPENAI_API_KEY not set — using mock LLM
+INFO:     Started server process [650]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:39604 - "POST /ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39608 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39618 - "GET /ready HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [650]

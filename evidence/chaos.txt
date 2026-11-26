@@ -1,0 +1,21 @@
+08:30:40 baseline alerts: none
+08:30:40 baseline error_rate=0.0115 p95=0.2898 cost_per_h=0.7215
+08:30:40 A: MOCK_ERROR_RATE=0.2
+08:32:08   AgentHighErrorRate FIRING after 88s
+08:32:08   error_rate=0.1819
+08:32:08 C: + LLM_MODEL=mock-llm-large (giữ A)
+08:34:42   LLMCostBurnRateHigh FIRING after 154s
+08:34:42   cost_per_h=13.6655 p95=0.6644
+08:34:42   alerts now: AgentHighErrorRate=firing, LLMCostBurnRateHigh=firing
+08:34:42 SCREENSHOT WINDOW (60s)
+08:35:42 B: MOCK_SLOW_RATE=0.3 (bỏ A, C)
+08:38:11   AgentHighLatencyP95 FIRING after 149s
+08:38:11   p95=1.9213 avg=0.668
+08:38:11 D: docker pause 1 instance
+08:38:57   AgentInstanceDown FIRING after 46s
+08:38:57   up count=1.0 paused=k5-day14-observability-agent-1
+08:38:58   unpaused
+08:38:58 E: AGENT_VERSION=v1 (mặc định còn lại)
+08:42:16   hit_ratio=n/a tokens_per_s=988.9419 alerts: none
+08:42:16 reset
+08:42:23 done
